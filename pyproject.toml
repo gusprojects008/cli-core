@@ -1,0 +1,10 @@
+[project]
+name = "cli-core"
+version = "0.0.1"
+description = "Reusable CLI utilities"
+authors = [{name = "Gustavo"}]
+dependencies = ["rich"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
