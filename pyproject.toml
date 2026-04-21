@@ -8,3 +8,9 @@ dependencies = ["rich"]
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["cli_core"]
+
+[tool.setuptools.package-data]
+"cli_core" = ["../templates/**/*"]
