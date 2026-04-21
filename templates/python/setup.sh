@@ -39,7 +39,7 @@ esac
 
 AUTOCOMPLETE_LINE="eval \"\$($VENV_ARGCOMPLETE $SCRIPT_PATH)\""
 
-SYSTEM_DEPENDENCIES=["bash_completion", "python3", "iw", "dhcpcd", "wpa_supplicant", "pkill", "ip"]
+SYSTEM_DEPENDENCIES=("python3" "iw" "dhcpcd" "wpa_supplicant" "pkill" "ip")
 
 print_step() {
     echo
@@ -103,7 +103,7 @@ print_separator_equals() {
 
 print_step "Checking required system dependencies..."
 
-for pkg in SYSTEM_DEPENDENCIES; do
+for pkg in "${SYSTEM_DEPENDENCIES[@]}"; do
     if ! command -v "$pkg" >/dev/null 2>&1; then
         print_error "Missing dependency: $pkg"
     fi
@@ -127,11 +127,8 @@ python -m pip install --upgrade pip >/dev/null 2>&1
 
 print_step "Installing dependencies..."
 
-if [ -f "requirements.txt" ]; then
-    pip install -r requirements.txt >/dev/null 2>&1
-    print_ok "Dependencies installed."
-else
-    print_error "requirements.txt not found."
+if ! pip install -r requirements.txt --no-input; then
+    print_error "Failed to install dependencies"
 fi
 
 print_step "Setup completed successfully!"
@@ -156,6 +153,9 @@ read -p "Do you want to make '$WRAPPER_NAME' a system command with autocomplete?
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [ ! -f /usr/share/bash-completion/bash_completion ]; then
+        print_warning "bash-completion not found (optional)"
+    fi
 
     if [ ! -f "$VENV_ARGCOMPLETE" ]; then
         print_error_msg "argcomplete not found in venv."
