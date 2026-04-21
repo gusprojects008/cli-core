@@ -8,9 +8,9 @@ def import_module(module_name):
         logger.error(f"Missing dependency: {module_name}")
         raise ImportError(f"Run setup.sh and and follow his instructions.")
 
-def check_dependencies(module_dependencies: list = None, executable_dependencies: list = None):
-    if executable_dependencies:
-        for dependency in executable_dependencies:
+def check_dependencies(module_dependencies: list = None, system_dependencies: list = None):
+    if system_dependencies:
+        for dependency in system_dependencies:
             if not shutil.which(dependency):
                 raise FileNotFoundError(f"{dependency} not found. Install it and try again...")
     if module_dependencies:
