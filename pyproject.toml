@@ -1,6 +1,6 @@
 [project]
 name = "cli-core"
-version = "0.0.1"
+version = "1.0.0"
 description = "Reusable CLI utilities"
 authors = [{name = "Gustavo"}]
 dependencies = ["rich"]
