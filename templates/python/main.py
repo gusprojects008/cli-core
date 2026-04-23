@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # PYTHON_ARGCOMPLETE_OK
 
+import argparse
+import argcomplete
+from cli_core.log import setup_logging
+
 def main():
     parser = argparse.ArgumentParser(
         description="",

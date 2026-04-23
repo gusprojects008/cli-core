@@ -5,8 +5,7 @@ def import_module(module_name):
         __import__(module_name)
         return True
     except ImportError as e:
-        logger.error(f"Missing dependency: {module_name}")
-        raise ImportError(f"Run setup.sh and and follow his instructions.")
+        raise ImportError(f"Missing dependency: {module_name}\nRun setup.sh and and follow his instructions.")
 
 def check_dependencies(module_dependencies: list = None, system_dependencies: list = None):
     if system_dependencies:

@@ -37,7 +37,7 @@ case "$CURRENT_SHELL" in
         ;;
 esac
 
-AUTOCOMPLETE_LINE="eval \"\$($VENV_ARGCOMPLETE $SCRIPT_PATH)\""
+AUTOCOMPLETE_LINE="eval \"\$($VENV_ARGCOMPLETE $WRAPPER_NAME)\""
 
 SYSTEM_DEPENDENCIES=("python3" "iw" "dhcpcd" "wpa_supplicant" "pkill" "ip")
 
@@ -127,7 +127,7 @@ python -m pip install --upgrade pip >/dev/null 2>&1
 
 print_step "Installing dependencies..."
 
-if ! pip install -r requirements.txt --no-input; then
+if ! pip install --no-cache-dir -r requirements.txt --no-input; then
     print_error "Failed to install dependencies"
 fi
 
@@ -180,36 +180,32 @@ exec \"$SCRIPT_DIR/$VENV_PYTHON\" \"$SCRIPT_PATH\" \"\$@\""
     print_step "Configuring autocomplete..."
 
     if [ -z "$RC_FILE" ]; then
-        print_warning "Shell '$CURRENT_SHELL' não suportado para automação."
-        print_info "Adicione manualmente ao seu arquivo de configuração do shell:"
+        print_warning "Shell '$CURRENT_SHELL' not supported for automation."
+        print_info "Manually add the following to your shell configuration file:"
         print_command "$AUTOCOMPLETE_LINE"
     else
-        if grep -q "$WRAPPER_NAME autocomplete" "$RC_FILE"; then
+        if grep -q "# $WRAPPER_NAME autocomplete" "$RC_FILE"; then
             print_warning "Autocomplete already configured in $RC_FILE"
         else
             {
                 echo ""
                 echo "# $WRAPPER_NAME autocomplete"
+                if [[ "$CURRENT_SHELL" == "zsh" ]]; then
+                    echo "autoload -U bashcompinit && bashcompinit"
+                fi
                 echo "$AUTOCOMPLETE_LINE"
             } >> "$RC_FILE"
             print_ok "Autocomplete added to $RC_FILE"
-
-            if [[ "$CURRENT_SHELL" == "zsh" ]]; then
-                if ! grep -q "autoload -U compinit && compinit" "$RC_FILE"; then
-                    print_warning "Zsh detected: make sure 'compinit' is loaded in $RC_FILE"
-                    print_info "Add the following line if not present:"
-                    print_command "autoload -U compinit && compinit"
-                fi
-            fi
         fi
-
-        print_section "To activate"
+        print_header "$RED IMPORTANT"
+        print_section "$RED To activate"
         print_command "source $RC_FILE"
+        echo
     fi
 
     print_section "Usage"
     print_command "$WRAPPER_NAME --help"
-    print_command "$WRAPPER_NAME scan --ifname <TAB>"
+    echo
 
 else
     print_info "Skipped. You can run the script directly:"

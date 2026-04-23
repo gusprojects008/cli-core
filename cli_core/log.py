@@ -1,17 +1,21 @@
 import logging
-from logging import FileHandler, Formatter
-from rich.logging import RichHandler
+from logging import Formatter, FileHandler
 
 def setup_logging(verbose: bool):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.handlers.clear()
 
-    console = RichHandler(
-        rich_tracebacks=True,
-        show_time=False,
-        show_path=False
-    )
+    try:
+        from rich.logging import RichHandler
+
+        console = RichHandler(
+            rich_tracebacks=True,
+            show_time=False,
+            show_path=False
+        )
+    except ImportError:
+        console = logging.StreamHandler()
 
     console.setLevel(logging.INFO)
     console.setFormatter(Formatter("%(message)s"))
