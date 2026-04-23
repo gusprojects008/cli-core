@@ -1,7 +1,7 @@
 import logging
 import logging.config
 from logging import Formatter, FileHandler
-from cli_util.files import new_file_path
+from cli_core.files import new_file_path
 
 def setup_logging(
     verbose: bool = False,
