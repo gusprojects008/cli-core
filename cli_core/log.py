@@ -1,7 +1,8 @@
 import logging
 from logging import Formatter, FileHandler
+from cli_core.files import new_file_path
 
-def setup_logging(verbose: bool):
+def setup_logging(verbose: bool, output_fullpath: str = None):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.handlers.clear()
@@ -22,7 +23,7 @@ def setup_logging(verbose: bool):
     logger.addHandler(console)
 
     if verbose:
-        file_handler = FileHandler("debug.log")
+        file_handler = FileHandler(str(new_file_path(output_fullpath, "debug.log")))
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(
             Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
