@@ -15,7 +15,7 @@ CYAN='\033[36m'
 
 set -euo pipefail
 
-PROJECT_NAME="nipm"
+PROJECT_NAME="framesniff"
 PROGRAM_EXTENSION=".py"
 WRAPPER_NAME=$PROJECT_NAME$PROGRAM_EXTENSION
 VENV_DIR=".venv"
@@ -127,7 +127,7 @@ python -m pip install --upgrade pip >/dev/null 2>&1
 
 print_step "Installing dependencies..."
 
-if ! pip install --no-cache-dir -r requirements.txt --no-input; then
+if ! pip install -r requirements.txt --no-cache-dir --no-input --upgrade --force-reinstall; then
     print_error "Failed to install dependencies"
 fi
 

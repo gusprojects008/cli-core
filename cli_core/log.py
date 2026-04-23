@@ -8,7 +8,9 @@ def setup_logging(
     output_fullpath: str = None,
     logging_config: dict | None = None
 ):
-    if logging_config is not None:
+    if isinstance(logging_config, dict):
+        if not logging_config:
+            raise ValueError("logging_config cannot be empty")
         logging.config.dictConfig(logging_config)
         return
 
