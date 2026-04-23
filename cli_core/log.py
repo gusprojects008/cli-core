@@ -1,8 +1,13 @@
-import logging
-from logging import Formatter, FileHandler
-from cli_core.files import new_file_path
+from logging import Formatter, FileHandler, config
+from cli_util.files import new_file_path
 
-def setup_logging(verbose: bool, output_fullpath: str = None):
+def setup_logging(config: dict):
+
+def setup_logging(verbose: bool = False, output_fullpath: str = None, config: None):
+    if config:
+        logging.config.dictConfig(config)
+        return
+         
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.handlers.clear()
