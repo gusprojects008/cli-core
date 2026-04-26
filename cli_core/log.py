@@ -4,6 +4,8 @@ from logging import Formatter, FileHandler
 from pathlib import Path
 from cli_core.files import new_file_path
 
+DEFAULT_PATH = "debug.log"
+
 def build_logging_config(verbose: bool = False, output: Path | str = None):
     handlers = {
         "console": {
@@ -39,7 +41,7 @@ def build_logging_config(verbose: bool = False, output: Path | str = None):
     root_handlers = ["console"]
 
     if verbose:
-        logfile = str(new_file_path(output, "debug.log"))
+        logfile = str(new_file_path(output, DEFAULT_PATH))
 
         handlers["file"] = {
             "class": "logging.FileHandler",
@@ -92,7 +94,7 @@ def setup_logging(
     logger.addHandler(console)
 
     if verbose:
-        file_handler = FileHandler(str(new_file_path(output_fullpath, "debug.log")))
+        file_handler = FileHandler(str(new_file_path(output_fullpath, DEFAULT_PATH)))
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(
             Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
