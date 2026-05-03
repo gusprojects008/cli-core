@@ -1,2 +1,9 @@
 ## Implementar/adicionar
 * Adicionar ao módulo "files" função de iter_packets_from_json mas de forma genérica e reutilizável.
+
+## Explicando a ideia por trás da arquitetura do template de aplicações cli/tui python:
+app.py: É o nucleo da aplicação do usuário, é o módulo responsável por fornecer uma clsse com todas os operações que a aplicação permite/fornece para usuário. Ela fornece uma função de dispatch utilizada por main.py, a função dispatch obtém args através do dicionário config do objeto context, passado inicialmente por bootstrap.py no momento da inicialização do objeto Operations, dessa forma, main.py não precisa passar args diretamente para a função dispatch. Assim, a função __main__.py utilizada para teste automatizados pode instanciar Operations de app.py, e chamar as funções diretamente, sem precisar de um objeto args.
+
+bootstrap.py: É o módulo responsável por receber uma variável de dicionário (config) de main.py, contendo dados da CLI, como o objeto args e parser de argparse, e dados como dependências de módulo e sistema, para que bootstrap.py possa chamar a função que verifica essa dependências, e retorne um erro amigável para o usuário, antes que o python retorne erro de import. Além de gerar e inicializar o logging do programa.
+
+context.py: É responsável por obter e definir os dados relacionados ao ambiente de execução do programa, além de criar arquivos de configuração ou cache na home do usuário que está executando o programa. Esses dados poderão ser utilizados pelas funções da classe Operations em app.py, que contém as funções que main.py irá executar de acordo com a operação chamada pelo usuário em args de argparse. AppContext também irá incluir dados de execução do programa, que podem ser utilizados por funções de app.py, através do dicionário "config" criado inicialmente por main.py, e enrriquecido conforome o necessário por bootstrap.py, com dados como: log_filepath.

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 RESET='\033[0m'
 
@@ -15,7 +15,7 @@ CYAN='\033[36m'
 
 set -euo pipefail
 
-PROJECT_NAME="framesniff"
+PROJECT_NAME="cli-core"
 PROGRAM_EXTENSION=".py"
 WRAPPER_NAME=$PROJECT_NAME$PROGRAM_EXTENSION
 VENV_DIR=".venv"

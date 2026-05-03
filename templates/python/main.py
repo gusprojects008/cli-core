@@ -5,6 +5,13 @@ import argparse
 import argcomplete
 from pathlib import Path
 from cli_core.log import setup_logging
+from core.bootstrap import init
+
+config = {
+    "module_dependencies": ["a", "b", "c"],
+    "system_dependencies": ["d", "e"],
+    "argparse": {}
+}
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -28,12 +35,16 @@ def parse_args():
 
     argcomplete.autocomplete(parser)
 
-    return parser, parser.parse_args()
+    return parser
 
 def main():
-    parser, args = parse_args()
-
-    log_path = setup_logging(verbose=args.verbose)
+    parser = parse_args()
+    config["argparse"]["parser"] = parser
+    config["argparse"]["args"] = parser.parse_args()
+    result = init(config)
+    operations = result.operations
+    logger = getLogger(__name__)
+    operations.dispatch()
 
 if __name__ == "__main__":
     main()
