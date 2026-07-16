@@ -2,7 +2,7 @@ import time
 import json
 import threading
 from logging import getLogger
-from core.bootstrap import init
+from packagename.bootstrap import init
 
 config = {
     "module_dependencies": ["c", "b", "c"],
@@ -86,7 +86,6 @@ def run_tests():
         "operation1 example",
         operations.operation1,
         test=True,
-        input_fullpath=test_input,
     )
 
     if ENABLE_SYSTEM_TESTS:

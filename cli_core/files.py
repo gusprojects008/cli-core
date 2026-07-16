@@ -2,9 +2,9 @@ import time
 import json
 from pathlib import Path
 
-def new_file_path(fullpath: str | Path = None, fallback="output"):
+def new_file_path(path: str | Path = None, fallback="output"):
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
-    p = Path(fullpath if fullpath else fallback)
+    p = Path(path if path else fallback)
     return p.with_name(f"{p.stem}-{timestamp}{p.suffix}")
 
 def iter_json_objects(path: str | Path):

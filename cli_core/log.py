@@ -65,7 +65,7 @@ def build_logging_config(verbose: bool = False, output: Path | str = None):
 
 def setup_logging(
     verbose: bool = False,
-    output_fullpath: Path | str = None,
+    output_path: Path | str = None,
     logging_config: dict | None = None
 ):
     if isinstance(logging_config, dict):
@@ -94,7 +94,7 @@ def setup_logging(
     logger.addHandler(console)
 
     if verbose:
-        file_handler = FileHandler(str(new_file_path(output_fullpath, DEFAULT_PATH)))
+        file_handler = FileHandler(str(new_file_path(output_path, DEFAULT_PATH)))
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(
             Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")

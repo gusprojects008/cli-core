@@ -2,7 +2,7 @@
 name = "cli-core"
 version = "1.0.0"
 description = "Reusable CLI utilities"
-authors = [{name = "Gustavo"}]
+authors = [{name = "Gustavo Araújo"}]
 dependencies = ["rich"]
 
 [build-system]
@@ -14,3 +14,6 @@ packages = ["cli_core"]
 
 [tool.setuptools.package-data]
 "cli_core" = ["../templates/**/*"]
+
+[project.scripts]
+cli-core = "cli_core.__main__:main"

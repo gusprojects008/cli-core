@@ -1,0 +1,19 @@
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+description = "CLI application built on top of cli-core framework"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Developer", email = "dev@example.com"}
+]
+dependencies = [
+    "cli-core"
+]
+
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["{{ package_name }}"]

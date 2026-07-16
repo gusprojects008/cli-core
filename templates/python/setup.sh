@@ -1,4 +1,6 @@
-!/usr/bin/env bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 RESET='\033[0m'
 
@@ -13,18 +15,23 @@ GREEN='\033[32m'
 BLUE='\033[34m'
 CYAN='\033[36m'
 
-set -euo pipefail
-
-PROJECT_NAME="cli-core"
-PROGRAM_EXTENSION=".py"
-WRAPPER_NAME=$PROJECT_NAME$PROGRAM_EXTENSION
-VENV_DIR=".venv"
-VENV_PYTHON="$VENV_DIR/bin/python"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT_PATH="$SCRIPT_DIR/$PROJECT_NAME$PROGRAM_EXTENSION"
-VENV_ARGCOMPLETE="$SCRIPT_DIR/$VENV_DIR/bin/register-python-argcomplete"
+
+PROJECT_NAME="yourproject"
+
+VENV_DIR=".venv"
+VENV_PATH="$SCRIPT_DIR/$VENV_DIR"
+
+VENV_PYTHON="$VENV_PATH/bin/python"
+VENV_ARGCOMPLETE="$VENV_PATH/bin/register-python-argcomplete"
+
+EXECUTABLES=(
+    "yourproject"
+    "yourproject-tui"
+)
 
 CURRENT_SHELL=$(basename "$SHELL")
+
 case "$CURRENT_SHELL" in
     bash)
         RC_FILE="$HOME/.bashrc"
@@ -36,10 +43,6 @@ case "$CURRENT_SHELL" in
         RC_FILE=""
         ;;
 esac
-
-AUTOCOMPLETE_LINE="eval \"\$($VENV_ARGCOMPLETE $WRAPPER_NAME)\""
-
-SYSTEM_DEPENDENCIES=("python3" "iw" "dhcpcd" "wpa_supplicant" "pkill" "ip")
 
 print_step() {
     echo
@@ -101,15 +104,65 @@ print_separator_equals() {
     printf "%*s\n" "$cols" "" | tr ' ' '='
 }
 
-print_step "Checking required system dependencies..."
+get_venv_executable() {
+    local executable="$1"
+    echo "$VENV_PATH/bin/$executable"
+}
 
-for pkg in "${SYSTEM_DEPENDENCIES[@]}"; do
-    if ! command -v "$pkg" >/dev/null 2>&1; then
-        print_error "Missing dependency: $pkg"
+create_wrapper() {
+    local executable="$1"
+
+    local venv_executable
+    venv_executable=$(get_venv_executable "$executable")
+
+    local wrapper_path="/usr/local/bin/$executable"
+
+    local wrapper_content
+    wrapper_content="#!/usr/bin/env bash
+exec \"$venv_executable\" \"\$@\""
+
+    print_step "Creating wrapper for '$executable'..."
+
+    if echo "$wrapper_content" | sudo tee "$wrapper_path" > /dev/null; then
+        sudo chmod +x "$wrapper_path"
+        print_ok "Wrapper created at $wrapper_path"
+    else
+        print_error_msg "Failed to create wrapper for '$executable'"
+        exit 1
     fi
-done
+}
 
-print_ok "All required system dependencies are available."
+configure_autocomplete() {
+    local executable="$1"
+
+    local autocomplete_line
+    autocomplete_line="eval \"\$($VENV_ARGCOMPLETE $executable)\""
+
+    if [ -z "$RC_FILE" ]; then
+        print_warning "Shell '$CURRENT_SHELL' not supported for automation."
+        print_info "Manually add the following to your shell configuration file:"
+        print_command "$autocomplete_line"
+        return
+    fi
+
+    if grep -q "# $executable autocomplete" "$RC_FILE"; then
+        print_warning "Autocomplete already configured for '$executable'"
+        return
+    fi
+
+    {
+        echo ""
+        echo "# $executable autocomplete"
+
+        if [[ "$CURRENT_SHELL" == "zsh" ]]; then
+            echo "autoload -U bashcompinit && bashcompinit"
+        fi
+
+        echo "$autocomplete_line"
+    } >> "$RC_FILE"
+
+    print_ok "Autocomplete added for '$executable'"
+}
 
 print_step "Setting up virtual environment..."
 
@@ -127,29 +180,37 @@ python -m pip install --upgrade pip >/dev/null 2>&1
 
 print_step "Installing dependencies..."
 
-if ! pip install -r requirements.txt --no-cache-dir --no-input --upgrade --force-reinstall; then
+if ! pip install -e . --no-cache-dir --no-input --upgrade --force-reinstall; then
     print_error "Failed to install dependencies"
 fi
 
 print_step "Setup completed successfully!"
 
-print_header "$RED IMPORTANT"
+print_header "${RED} IMPORTANT"
 
 print_section "Interpreter"
 print_info "$VENV_PYTHON"
 echo
 
-print_section "Usage"
+print_section "Virtual environment"
+
 print_comment "activate virtual environment"
 print_command "source \"$VENV_DIR/bin/activate\""
 echo
-print_comment "run the program"
-print_command "\"$VENV_PYTHON\" \"$SCRIPT_PATH\" --help"
-echo
 
-print_header "$CYAN OPTIONAL: CREATE WRAPPER + AUTOCOMPLETE"
+print_section "Executables"
 
-read -p "Do you want to make '$WRAPPER_NAME' a system command with autocomplete? (requires sudo) (y/n) " -n 1 -r
+for executable in "${EXECUTABLES[@]}"; do
+    executable_path=$(get_venv_executable "$executable")
+
+    print_comment "run $executable"
+    print_command "\"$executable_path\" --help"
+    echo
+done
+
+print_header "${CYAN} OPTIONAL: CREATE WRAPPERS + AUTOCOMPLETE"
+
+read -p "Do you want to expose executables globally with autocomplete? (requires sudo) (y/n) " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -163,53 +224,37 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
 
-    print_step "Creating wrapper at /usr/local/bin/$WRAPPER_NAME..."
+    for executable in "${EXECUTABLES[@]}"; do
+        create_wrapper "$executable"
+        configure_autocomplete "$executable"
+    done
 
-    WRAPPER_CONTENT="#!/bin/bash
-exec \"$SCRIPT_DIR/$VENV_PYTHON\" \"$SCRIPT_PATH\" \"\$@\""
+    if [ -n "$RC_FILE" ]; then
+        print_header "${RED} IMPORTANT"
 
-    if echo "$WRAPPER_CONTENT" | sudo tee /usr/local/bin/$WRAPPER_NAME > /dev/null; then
-        sudo chmod +x /usr/local/bin/$WRAPPER_NAME
-        print_ok "Wrapper created at /usr/local/bin/$WRAPPER_NAME"
-    else
-        print_error_msg "Failed to create wrapper. Try manually:"
-        print_command "echo '$WRAPPER_CONTENT' | sudo tee /usr/local/bin/$WRAPPER_NAME && sudo chmod +x /usr/local/bin/$WRAPPER_NAME"
-        exit 1
-    fi
-
-    print_step "Configuring autocomplete..."
-
-    if [ -z "$RC_FILE" ]; then
-        print_warning "Shell '$CURRENT_SHELL' not supported for automation."
-        print_info "Manually add the following to your shell configuration file:"
-        print_command "$AUTOCOMPLETE_LINE"
-    else
-        if grep -q "# $WRAPPER_NAME autocomplete" "$RC_FILE"; then
-            print_warning "Autocomplete already configured in $RC_FILE"
-        else
-            {
-                echo ""
-                echo "# $WRAPPER_NAME autocomplete"
-                if [[ "$CURRENT_SHELL" == "zsh" ]]; then
-                    echo "autoload -U bashcompinit && bashcompinit"
-                fi
-                echo "$AUTOCOMPLETE_LINE"
-            } >> "$RC_FILE"
-            print_ok "Autocomplete added to $RC_FILE"
-        fi
-        print_header "$RED IMPORTANT"
-        print_section "$RED To activate"
-        print_command "source $RC_FILE"
+        print_section "To activate"
+        print_command "source \"$RC_FILE\""
         echo
     fi
 
     print_section "Usage"
-    print_command "$WRAPPER_NAME --help"
-    echo
 
+    for executable in "${EXECUTABLES[@]}"; do
+        print_command "$executable --help"
+    done
+
+    echo
 else
-    print_info "Skipped. You can run the script directly:"
-    print_command "\"$SCRIPT_DIR/$VENV_PYTHON\" \"$SCRIPT_PATH\" --help"
+    print_info "Skipped wrapper installation."
+
+    print_section "Run directly from venv"
+
+    for executable in "${EXECUTABLES[@]}"; do
+        executable_path=$(get_venv_executable "$executable")
+        print_command "\"$executable_path\" --help"
+    done
+
+    echo
 fi
 
-print_ok "Setup complete! Happy networking!"
+print_ok "Setup complete!"
